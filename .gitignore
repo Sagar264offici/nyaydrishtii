@@ -1,0 +1,42 @@
+# --- secrets / env ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- node / JS ---
+node_modules/
+dist/
+build/
+.expo/
+.expo-shared/
+*.log
+npm-debug.log*
+
+# --- Vite ---
+apps/admin/dist/
+
+# --- Expo / React Native ---
+apps/mobile/.expo/
+apps/mobile/web-build/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.orig.*
+
+# --- Python / FastAPI ---
+backend/venv/
+backend/.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/
+.claude/
