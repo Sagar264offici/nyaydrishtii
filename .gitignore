@@ -34,6 +34,7 @@ __pycache__/
 *.pyo
 *.egg-info/
 .pytest_cache/
+backend/*.db
 
 # --- OS / editor ---
 .DS_Store

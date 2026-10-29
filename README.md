@@ -5,9 +5,11 @@ dashboard, a mobile app, and a Python API backend.
 
 ## Status
 
-Scaffolding only — each app boots and shows a basic homepage/screen, and the
-backend exposes a working `/health` check. No AI agents, no legal-calculation
-logic, and no API wiring between the apps yet.
+First functional MVP phase: the backend serves synthetic case data from
+SQLite (`/api/cases`, `/api/cases/{id}`, `/api/metrics`), and **apps/admin**
+is a working dashboard wired to it — case list with search/filter, a
+case-details view, and live metrics. **apps/mobile** is still scaffolding
+only. No AI agents and no legal-eligibility logic yet.
 
 ## Architecture
 
@@ -20,13 +22,14 @@ NyayDrishti/
 └── shared/       Shared TypeScript type definitions (types.ts)
 ```
 
-- **apps/admin** and **apps/mobile** don't talk to each other or to the
-  backend yet — each is an independent, independently-runnable scaffold.
-- **shared/types.ts** defines placeholder data shapes (`Case`, `User`) both
-  frontends will eventually consume. It's plain `.ts`, not wired into either
-  app as a package/workspace dependency yet — that plumbing is deferred until
-  an app actually needs to import it (no npm workspaces, no build step).
-- **backend** is standalone, not yet called by either frontend.
+- **apps/admin** now calls the backend's `/api/*` endpoints directly (plain
+  `fetch`, see `apps/admin/src/api.ts`). **apps/mobile** doesn't talk to the
+  backend or to apps/admin yet.
+- **shared/types.ts** defines placeholder data shapes (`Case`, `User`) left
+  over from scaffolding. apps/admin now has its own, more precise `Case`/
+  `Metrics` types in `src/api.ts` that match the real API response shape;
+  `shared/types.ts` isn't wired in anywhere and is unchanged by this phase.
+- **backend** is called by apps/admin; apps/mobile still doesn't call it.
 
 ## Tech stack & versions (as installed)
 
@@ -49,16 +52,27 @@ Host tooling: Node v24.6.0, npm 11.5.1, git 2.54.0.
 
 ### Admin dashboard (web)
 
+Start the backend first (below) — the dashboard fetches from it at
+`http://localhost:8000` by default.
+
 ```bash
 cd apps/admin
 npm install
-npm run dev        # starts Vite dev server, prints a localhost URL
+npm run dev        # starts Vite dev server, prints a localhost URL (default http://localhost:5173)
+```
+
+Backend running elsewhere? Point the dashboard at it with
+`VITE_API_BASE_URL` (e.g. in `apps/admin/.env.local`):
+
+```bash
+echo "VITE_API_BASE_URL=http://127.0.0.1:8000" > apps/admin/.env.local
 ```
 
 Verify a production build compiles:
 
 ```bash
-npm run build
+npm run build       # tsc -b && vite build
+npx tsc --noEmit    # typecheck only
 ```
 
 ### Mobile app
@@ -90,6 +104,12 @@ Verify the health endpoint (in another terminal, with the server running):
 ```bash
 curl http://127.0.0.1:8000/health
 # -> {"status":"ok"}
+```
+
+Run the backend test suite:
+
+```bash
+cd backend && source venv/bin/activate && pytest
 ```
 
 ## Verifying the whole setup

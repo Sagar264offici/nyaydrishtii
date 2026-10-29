@@ -1,32 +1,44 @@
-# React + TypeScript + Vite
+# NyayDrishti Admin Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite + TypeScript case-review dashboard. Synthetic demo data only —
+see the banner in the app and `backend/database.py` for the seed set.
 
-Currently, two official plugins are available:
+## Run it
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The dashboard reads from the FastAPI backend, so start that first.
 
-## React Compiler
+```bash
+# Terminal 1 — backend (from repo root)
+cd ../../backend
+source venv/bin/activate   # create it first if needed: python3.12 -m venv venv && pip install -r requirements.txt
+uvicorn main:app --port 8000
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+# Terminal 2 — admin dashboard (from repo root)
+cd apps/admin
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Open the URL Vite prints (default `http://localhost:5173`). The dashboard
+expects the backend at `http://localhost:8000` by default; override with a
+`VITE_API_BASE_URL` env var (e.g. in `apps/admin/.env.local`) if the backend
+runs elsewhere.
+
+## Verify
+
+```bash
+npx tsc --noEmit   # typecheck
+npm run build      # production build (tsc -b && vite build)
+npm run lint       # oxlint
+```
+
+## What's here
+
+- `src/api.ts` — typed fetch client for `GET /api/cases`, `GET /api/cases/{id}`,
+  `GET /api/metrics`.
+- `src/App.tsx` — the dashboard: demo-data banner, metrics summary, searchable
+  /filterable case table, and a case-details view (no router — plain
+  component state toggles between table and details).
+
+No AI extraction or legal-eligibility logic yet — this phase only displays
+case facts and review status.
