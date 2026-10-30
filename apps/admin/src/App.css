@@ -36,7 +36,11 @@
 }
 
 .dashboard-header h1 {
-  margin: 16px 0 4px;
+  margin: 16px 0 12px;
+}
+
+.dashboard-header p {
+  margin-top: 0;
 }
 
 /* Metrics summary */
