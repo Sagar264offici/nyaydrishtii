@@ -14,12 +14,14 @@ build/
 *.log
 npm-debug.log*
 
-# --- Vite ---
+# --- Vite / React ---
 apps/admin/dist/
+apps/admin/node_modules/
 
 # --- Expo / React Native ---
 apps/mobile/.expo/
 apps/mobile/web-build/
+apps/mobile/node_modules/
 *.jks
 *.p8
 *.p12
@@ -35,6 +37,9 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 backend/*.db
+
+# --- documentation / misc ---
+*.pdf
 
 # --- OS / editor ---
 .DS_Store

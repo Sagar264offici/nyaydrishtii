@@ -6,8 +6,6 @@ infers anything new -- no Section 479 evaluation is ever run here, no
 custody date or fact value is ever invented. It only formats what is already
 persisted. See GET /api/cases/{case_id}/review-pack in main.py.
 
-ponytail: one flat module with plain helper functions, not a templating
-engine or a class hierarchy -- there is exactly one document layout.
 reportlab is the one new dependency this phase needed (stdlib has no PDF
 writer, and nothing already installed does tables/pagination/text-wrapping).
 """

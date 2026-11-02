@@ -9,11 +9,8 @@ POST /api/cases/{case_id}/evaluations in main.py). It also never infers or
 invents a fact: every critical input must already be reviewer-verified, or
 the evaluation is blocked.
 
-ponytail: one hand-checked statutory source and one rule function, not a
-generic versioned "rules table" — there is exactly one rule in scope for
-this hackathon phase. Upgrade path if a second rule is ever added: pull the
-shared bits (critical-fact gating, trace/result shape) into a small
-interface, but don't build that ahead of a second real rule.
+There is exactly one rule in scope for this hackathon phase: the
+Section 479 BNSS review-status engine below.
 """
 
 from __future__ import annotations

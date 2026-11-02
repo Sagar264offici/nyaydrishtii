@@ -3,15 +3,67 @@
 Hackathon MVP for legal case visibility/management. Monorepo with a web admin
 dashboard, a mobile app, and a Python API backend.
 
+## Quick start
+
+### 1. Backend
+
+```bash
+cd backend
+python3.12 -m venv venv        # or: python3 -m venv venv
+source venv/bin/activate       # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+The API is now at `http://localhost:8000`. The `/health` endpoint should
+return `{"status":"ok"}`.
+
+### 2. Admin dashboard (web)
+
+```bash
+cd apps/admin
+npm install
+npm run dev        # opens the dashboard at http://localhost:5173 by default
+```
+
+If the backend is running on a different host/port, set
+`VITE_API_BASE_URL` before starting it (e.g. in `apps/admin/.env.local`):
+
+```bash
+echo "VITE_API_BASE_URL=http://127.0.0.1:8000" > apps/admin/.env.local
+```
+
+### 3. Mobile app
+
+Start the backend **bound to all interfaces** so a device or emulator can
+reach it:
+
+```bash
+cd backend && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+Then configure the backend address for your target before starting the app:
+
+```bash
+cd apps/mobile
+echo "EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > .env.local   # iOS Simulator example
+npm install
+npx expo start      # press 'a' (Android), 'i' (iOS), or scan the QR code with Expo Go
+```
+
+The exact `EXPO_PUBLIC_API_BASE_URL` value differs per target
+(iOS Simulator / Android Emulator / physical device) — see
+`apps/mobile/README.md` for the right address for each.
+
 ## Status
 
-First functional MVP phase: the backend serves synthetic case data from
-SQLite (`/api/cases`, `/api/cases/{id}`, `/api/metrics`), and **apps/admin**
-is a working dashboard wired to it — case list with search/filter, a
-case-details view, and live metrics.
+The backend serves synthetic case data from SQLite (`/api/cases`,
+`/api/cases/{id}`, `/api/metrics`), and **apps/admin** is a working
+dashboard wired to it — case list with search/filter, a case-details view,
+and live metrics.
 
-Second phase: document upload and fact extraction, so a reviewer can upload
-a case PDF and verify the facts it suggests instead of retyping them.
+Document upload and fact extraction let a reviewer upload a case PDF and
+verify the facts it suggests instead of retyping them.
 
 - Backend: `POST /api/documents/preview` accepts a PDF, extracts text with
   PyMuPDF (falling back to Tesseract OCR if the text layer is empty and
@@ -26,15 +78,15 @@ a case PDF and verify the facts it suggests instead of retyping them.
   method, and a status badge (unknown / unverified / verified / conflict),
   with inline edit + verify/flag controls.
 
-Third phase: a deterministic rule engine for **Section 479, Bharatiya
-Nagarik Suraksha Sanhita (BNSS), 2023** — the maximum-undertrial-detention
-provision — that turns a case's reviewer-verified facts into an **internal
-review-status flag**. See "Section 479 BNSS rule engine" below for the full
-statutory source, logic, assumptions, and limitations — in short: it never
-infers a missing fact, never auto-verifies anything, never overwrites
-evaluation history, and never outputs a bail/release decision.
+A deterministic rule engine for **Section 479, Bharatiya Nagarik Suraksha
+Sanhita (BNSS), 2023** — the maximum-undertrial-detention provision — turns
+a case's reviewer-verified facts into an **internal review-status flag**.
+See "Section 479 BNSS rule engine" below for the full statutory source,
+logic, assumptions, and limitations — in short: it never infers a missing
+fact, never auto-verifies anything, never overwrites evaluation history,
+and never outputs a bail/release decision.
 
-- Backend: three new `FactType`s (`max_punishment_years`,
+- Backend: three `FactType`s (`max_punishment_years`,
   `death_or_life_punishment`, `accused_caused_delay_days`) feed the engine,
   reusing the existing fact-verification machinery end to end — no new
   verification workflow was needed. `POST /api/cases/{id}/evaluations` runs
@@ -47,22 +99,21 @@ evaluation history, and never outputs a bail/release decision.
   blockers/escalation reasons, the calculation, and an expandable rule
   trace + statutory text).
 
-Fourth phase (this one): a **Counsel Review Pack** — a downloadable PDF that
-packages a case's current facts and most recent Section 479 evaluation (if
-any) into one document for human counsel to read offline. See "Counsel
-Review Pack (PDF)" below. It only formats data already on record — it never
-runs a new evaluation, never invents a missing value, and is clearly marked
-throughout as a draft aid, not a judicial determination.
+A **Counsel Review Pack** is a downloadable PDF that packages a case's
+current facts and most recent Section 479 evaluation (if any) into one
+document for human counsel to read offline. See "Counsel Review Pack (PDF)"
+below. It only formats data already on record — it never runs a new
+evaluation, never invents a missing value, and is clearly marked throughout
+as a draft aid, not a judicial determination.
 
 - Backend: `GET /api/cases/{id}/review-pack` renders the PDF on demand with
   [reportlab](https://www.reportlab.com/) (the one new dependency this phase
   needed — stdlib has no PDF writer).
 - Admin: each case's detail page has a "Download Counsel Review Pack" button.
 
-Fifth phase (this one): persistent **follow-up tasks** linked to a case, and
-an **append-only audit trail** covering fact verification, evaluations,
-follow-up changes, and case-status changes. See "Follow-up tasks" and
-"Audit trail" below.
+Persistent **follow-up tasks** linked to a case, and an **append-only audit
+trail** covering fact verification, evaluations, follow-up changes, and
+case-status changes. See "Follow-up tasks" and "Audit trail" below.
 
 - Backend: `follow_ups` and `audit_log` are new SQLite tables. Follow-ups
   have a full status lifecycle (`pending` → `in_progress` → `completed` /
@@ -79,9 +130,9 @@ follow-up changes, and case-status changes. See "Follow-up tasks" and
   status. Dashboard metrics now include real follow-up status counts.
 - No new backend dependency and no new admin dependency were needed.
 
-Eighth phase (this one): **apps/mobile** is now a functional companion app
-(Expo Router, file-based routes under `src/app/`) — a case dashboard and a
-case-details screen, talking to the same backend as the admin dashboard. See
+**apps/mobile** is now a functional companion app (Expo Router,
+file-based routes under `src/app/`) — a case dashboard and a case-details
+screen, talking to the same backend as the admin dashboard. See
 `apps/mobile/README.md` for full setup. It's deliberately read-heavy: facts
 and evaluations are view-only (no duplicate rule engine, no fact editing),
 and PDF upload / the Counsel Review Pack stay web-only. The one write path
@@ -559,13 +610,13 @@ case's review-status change.
 
 ## Verifying the whole setup
 
-Run these from the repo root to confirm everything is working:
+Run these from the repo root to confirm everything builds and tests:
 
 ```bash
-# Admin: installs + production build
+# Admin dashboard: install + production build
 (cd apps/admin && npm install && npm run build)
 
-# Mobile: installs + typecheck (no simulator needed)
+# Mobile app: install + typecheck (no simulator needed)
 (cd apps/mobile && npm install && npx tsc --noEmit)
 
 # Backend: venv + install + tests + start + health check
@@ -575,5 +626,3 @@ Run these from the repo root to confirm everything is working:
   && (uvicorn main:app --port 8000 &) \
   && sleep 1 && curl http://127.0.0.1:8000/health && echo)
 ```
-# nyaydrishtii
-# nyaydrishtii
